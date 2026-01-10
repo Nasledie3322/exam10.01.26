@@ -13,9 +13,9 @@ public class BookLoanController(IBookLoanService BookLoanService) : ControllerBa
      return await BookLoanService.GetBookLoanAsync();
     }
      [HttpGet("{bookLoanId}")]
-    public async Task<Response<BookLoan>> GetByIdAsync(int BookLoanId)
+    public async Task<Response<BookLoan>> GetByIdAsync(int bookLoanId)
     {
-        return await BookLoanService.GetBookLoanByIdAsync(BookLoanId);
+        return await BookLoanService.GetBookLoanByIdAsync(bookLoanId);
     }
 
     [HttpPost]
