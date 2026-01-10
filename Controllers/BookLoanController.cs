@@ -3,37 +3,45 @@ using WebApi.Responses;
 using WebApi.Services;
 
 namespace WebApi.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
-public class BookLoanController(IBookLoanService BookLoanService) : ControllerBase
+public class BookLoanController : ControllerBase
 {
+    private readonly IBookLoanService _bookLoanService;
+
+    public BookLoanController(IBookLoanService bookLoanService)
+    {
+        _bookLoanService = bookLoanService;
+    }
+
     [HttpGet]
     public async Task<List<BookLoan>> GetBookLoansAsync()
     {
-     return await BookLoanService.GetBookLoanAsync();
+        return await _bookLoanService.GetBookLoanAsync();
     }
-     [HttpGet("{bookLoanId}")]
-    public async Task<Response<BookLoan>> GetByIdAsync(int bookLoanId)
+
+    [HttpGet("{bookLoanId}")]
+    public async Task<Response<BookLoan?>> GetByIdAsync(int bookLoanId)
     {
-        return await BookLoanService.GetBookLoanByIdAsync(bookLoanId);
+        return await _bookLoanService.GetBookLoanByIdAsync(bookLoanId);
     }
 
     [HttpPost]
-    public async Task<Response<string>> AddAsync(BookLoan BookLoan)
+    public async Task<Response<string>> AddAsync(BookLoan bookLoan)
     {
-        return await BookLoanService.AddBookLoanAsync(BookLoan);
+        return await _bookLoanService.AddBookLoanAsync(bookLoan);
     }
 
     [HttpPut]
-    public async Task<Response<string>> UpdateAsync(BookLoan BookLoan)
+    public async Task<Response<string>> UpdateAsync(BookLoan bookLoan)
     {
-        return await BookLoanService.UpdateBookLoanAsync(BookLoan);
+        return await _bookLoanService.UpdateBookLoanAsync(bookLoan);
     }
 
-    [HttpDelete("{attributeId}")]
-    public async Task<Response<string>> DeleteAsync(int BookLoanId)
+    [HttpDelete("{bookLoanId}")]
+    public async Task<Response<string>> DeleteAsync(int bookLoanId)
     {
-        return await BookLoanService.DeleteBookLoanAsync(BookLoanId);
+        return await _bookLoanService.DeleteBookLoanAsync(bookLoanId);
     }
 }
-

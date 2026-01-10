@@ -3,37 +3,45 @@ using WebApi.Responses;
 using WebApi.Services;
 
 namespace WebApi.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(IUserService UserService) : ControllerBase
+public class UserController : ControllerBase
 {
+    private readonly IUserService _userService;
+
+    public UserController(IUserService userService)
+    {
+        _userService = userService;
+    }
+
     [HttpGet]
     public async Task<List<User>> GetUsersAsync()
     {
-     return await UserService.GetUserAsync();
+        return await _userService.GetUserAsync();
     }
-     [HttpGet("{UserId}")]
-    public async Task<Response<User>> GetByIdAsync(int UserId)
+
+    [HttpGet("{userId}")]
+    public async Task<Response<User?>> GetByIdAsync(int userId)
     {
-        return await UserService.GetUserByIdAsync(UserId);
+        return await _userService.GetUserByIdAsync(userId);
     }
 
     [HttpPost]
-    public async Task<Response<string>> AddAsync(User User)
+    public async Task<Response<string>> AddAsync(User user)
     {
-        return await UserService.AddUserAsync(User);
+        return await _userService.AddUserAsync(user);
     }
 
     [HttpPut]
-    public async Task<Response<string>> UpdateAsync(User User)
+    public async Task<Response<string>> UpdateAsync(User user)
     {
-        return await UserService.UpdateUserAsync(User);
+        return await _userService.UpdateUserAsync(user);
     }
 
-    [HttpDelete("{attributeId}")]
-    public async Task<Response<string>> DeleteAsync(int UserId)
+    [HttpDelete("{userId}")]
+    public async Task<Response<string>> DeleteAsync(int userId)
     {
-        return await UserService.DeleteUserAsync(UserId);
+        return await _userService.DeleteUserAsync(userId);
     }
 }
-
