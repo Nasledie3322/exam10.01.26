@@ -4,7 +4,7 @@ namespace WebApi.Services;
 
 public interface IBookLoanService
 {
-    Task<Response<string>> AddBookLoanAsync(BookLoan bookLoan);
+    Task<Response<string>> AddBookLoanAsync(AddBookLoanDto bookLoanDto);
 
     Task<Response<string>> DeleteBookLoanAsync(int bookLoanId);
 
@@ -12,5 +12,5 @@ public interface IBookLoanService
 
     Task<Response<BookLoan?>> GetBookLoanByIdAsync(int bookLoanId);
 
-    Task<Response<string>> UpdateBookLoanAsync(BookLoan bookLoan);
+    Task<Response<string>> UpdateBookLoanAsync(UpdateBookLoanDto bookLoanDto);
 }

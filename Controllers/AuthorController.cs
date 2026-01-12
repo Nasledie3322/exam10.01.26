@@ -27,16 +27,16 @@ public class AuthorController : ControllerBase
         return await _authorService.GetAuthorByIdAsync(authorId);
     }
 
-    [HttpPost]
-    public async Task<Response<string>> AddAsync(Author author)
-    {
-        return await _authorService.AddAuthorAsync(author);
-    }
 
-    [HttpPut]
-    public async Task<Response<string>> UpdateAsync(Author author)
+ [HttpPost]
+    public async Task<Response<string>> AddAsync(AddAuthorDto authorDto)
     {
-        return await _authorService.UpdateAuthorAsync(author);
+        return await _authorService.AddAuthorAsync(authorDto);
+    }
+    [HttpPut]
+    public async Task<Response<string>> UpdateAsync(UpdateAuthorDto authorDto)
+    {
+        return await _authorService.UpdateAuthorAsync(authorDto);
     }
 
     [HttpDelete("{authorId}")]

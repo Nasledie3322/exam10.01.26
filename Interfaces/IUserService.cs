@@ -4,7 +4,7 @@ namespace WebApi.Services;
 
 public interface IUserService
 {
-    Task<Response<string>> AddUserAsync(User user);
+    Task<Response<string>> AddUserAsync(AddUserDto userDto);
 
     Task<Response<string>> DeleteUserAsync(int userId);
 
@@ -12,5 +12,5 @@ public interface IUserService
 
     Task<Response<User?>> GetUserByIdAsync(int userId);
 
-    Task<Response<string>> UpdateUserAsync(User user);
+    Task<Response<string>> UpdateUserAsync(UpdateUserDto userDto);
 }

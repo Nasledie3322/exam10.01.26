@@ -4,7 +4,7 @@ namespace WebApi.Services;
 
 public interface IAuthorService
 {
-    Task<Response<string>> AddAuthorAsync(Author author);
+    Task<Response<string>> AddAuthorAsync(AddAuthorDto authorDto);
 
     Task<Response<string>> DeleteAuthorAsync(int authorId);
 
@@ -12,5 +12,5 @@ public interface IAuthorService
 
     Task<Response<Author?>> GetAuthorByIdAsync(int authorId);
 
-    Task<Response<string>> UpdateAuthorAsync(Author author);
+    Task<Response<string>> UpdateAuthorAsync(UpdateAuthorDto authorDto);
 }

@@ -10,21 +10,19 @@ public class BookService(ApplicationDbContext applicationDbContext) : IBookServi
 {
     private readonly ApplicationDbContext _dbContext = applicationDbContext;
 
- public async Task<Response<string>> AddBookAsync(Book book)
-    {
-        using var conn = _dbContext.Connection();
-        var query = "insert into books(title, publishedYear, genre) values(@title, @publishedYear, @genre)";
-        var res = await conn.ExecuteAsync(query, new
-        {
-            title = book.Title,
-            publishedYear = book.PublishedYear,
-            genre = book.Genre
-        });
 
-        return res == 0
-            ? new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!")
-            : new Response<string>(HttpStatusCode.OK, "Book added successfully!");
-    }
+public async Task<Response<string>> AddBookAsync(AddBookDto bookDto)
+{
+    using var conn = _dbContext.Connection();
+    var query = "insert into books(title, publishedyear, genre, authorid) values(@title, @publishedYear, @genre, @AuthorId)";
+    var res = await conn.ExecuteAsync(query, bookDto);
+
+    return res == 0
+        ? new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!")
+        : new Response<string>(HttpStatusCode.OK, "Book added successfully!");
+}
+
+
 
 public async Task<Response<string>> DeleteBookAsync(int bookId)
     {
@@ -70,13 +68,13 @@ public async Task<Response<Book?>> GetBookByIdAsync(int bookId)
         }
     }
     
-public async Task<Response<string>> UpdateBookAsync(Book Book)
+public async Task<Response<string>> UpdateBookAsync(UpdateBookDto bookDto)
     {
         try
         {
             using var context = _dbContext.Connection();
             var query = "update books set title = @title, publishedYear= @publishedYear, genre = @genre, authorId=@authorId where id = @id";
-            var result = await context.ExecuteAsync(query, new{title = Book.Title ,id = Book.Id, publishedYear = Book.PublishedYear, genre = Book.Genre,authorId= Book.AuthorId});
+            var result = await context.ExecuteAsync(query, new{title = bookDto.Title ,id = bookDto.Id, publishedYear = bookDto.PublishedYear, genre = bookDto.Genre,authorId= bookDto.AuthorId});
             return result==0
                 ?new Response<string>(HttpStatusCode.InternalServerError, "Book not updated!")
                 :new Response<string>(HttpStatusCode.OK, "Book successfully updated!");

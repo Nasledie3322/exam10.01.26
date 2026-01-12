@@ -28,15 +28,15 @@ public class BookController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<Response<string>> AddAsync(Book book)
+    public async Task<Response<string>> AddAsync(AddBookDto bookDto)
     {
-        return await _bookService.AddBookAsync(book);
+        return await _bookService.AddBookAsync(bookDto);
     }
 
     [HttpPut]
-    public async Task<Response<string>> UpdateAsync(Book book)
+    public async Task<Response<string>> UpdateAsync(UpdateBookDto bookDto)
     {
-        return await _bookService.UpdateBookAsync(book);
+        return await _bookService.UpdateBookAsync(bookDto);
     }
 
     [HttpDelete("{bookId}")]

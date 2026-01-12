@@ -28,15 +28,15 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<Response<string>> AddAsync(User user)
+    public async Task<Response<string>> AddAsync(AddUserDto userDto)
     {
-        return await _userService.AddUserAsync(user);
+        return await _userService.AddUserAsync(userDto);
     }
 
     [HttpPut]
-    public async Task<Response<string>> UpdateAsync(User user)
+    public async Task<Response<string>> UpdateAsync(UpdateUserDto userDto)
     {
-        return await _userService.UpdateUserAsync(user);
+        return await _userService.UpdateUserAsync(userDto);
     }
 
     [HttpDelete("{userId}")]

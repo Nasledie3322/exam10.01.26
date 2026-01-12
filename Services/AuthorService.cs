@@ -1,6 +1,5 @@
 using System.Net;
 using Dapper;
-using WebApi.Data;
 using WebApi.Responses;
 
 namespace WebApi.Services;
@@ -10,21 +9,21 @@ public class AuthorService(ApplicationDbContext applicationDbContext):IAuthorSer
 {
     private readonly ApplicationDbContext _dbContext = applicationDbContext;
 
- public async Task<Response<string>> AddAuthorAsync(Author author)
-    {
-        using var conn = _dbContext.Connection();
-        var query = "insert into authors(fullname, birthDate, country) values(@fullname, @birthDate, @country)";
-        var res = await conn.ExecuteAsync(query, new
+    public async Task<Response<string>> AddAuthorAsync(AddAuthorDto authorDto)
         {
-            fullname = author.Fullname,
-            birthDate = author.BirthDate,
-            country = author.Country
-        });
+            using var conn = _dbContext.Connection();
+            var query = "insert into authors(fullname, birthDate, country) values(@fullname, @birthDate, @country)";
+            var res = await conn.ExecuteAsync(query, new
+            {
+                fullname = authorDto.Fullname,
+                birthDate = authorDto.BirthDate,
+                country = authorDto.Country
+            });
 
-        return res == 0
-            ? new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!")
-            : new Response<string>(HttpStatusCode.OK, "Author added successfully!");
-    }
+            return res == 0
+                ? new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!")
+                : new Response<string>(HttpStatusCode.OK, "Author added successfully!");
+        }
 
 public async Task<Response<string>> DeleteAuthorAsync(int authorId)
     {
@@ -47,7 +46,7 @@ public async Task<Response<string>> DeleteAuthorAsync(int authorId)
     public async Task<List<Author>> GetAuthorAsync()
     {
         using var context = _dbContext.Connection();
-        var query = "select * from auhtors";
+        var query = "select * from authors";
         var companies = await context.QueryAsync<Author>(query);
         return companies.ToList();
     }
@@ -70,13 +69,13 @@ public async Task<Response<Author?>> GetAuthorByIdAsync(int authorId)
         }
     }
     
-public async Task<Response<string>> UpdateAuthorAsync(Author author)
+public async Task<Response<string>> UpdateAuthorAsync(UpdateAuthorDto authorDto)
     {
         try
         {
             using var context = _dbContext.Connection();
             var query = "update authors set fullname = @fullname,country = @country, birthDate= @birthDate where id = @id";
-            var result = await context.ExecuteAsync(query, new{fullname = author.Fullname,country = author.Country,birthDate=author.BirthDate,id = author.Id});
+            var result = await context.ExecuteAsync(query, new{fullname = authorDto.Fullname,country = authorDto.Country,birthDate=authorDto.BirthDate,id = authorDto.Id});
             return result==0
                 ?new Response<string>(HttpStatusCode.InternalServerError, "Author not updated!")
                 :new Response<string>(HttpStatusCode.OK, "Author successfully updated!");

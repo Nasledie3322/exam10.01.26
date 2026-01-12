@@ -28,15 +28,15 @@ public class BookLoanController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<Response<string>> AddAsync(BookLoan bookLoan)
+    public async Task<Response<string>> AddAsync(AddBookLoanDto bookLoanDto)
     {
-        return await _bookLoanService.AddBookLoanAsync(bookLoan);
+        return await _bookLoanService.AddBookLoanAsync(bookLoanDto);
     }
 
     [HttpPut]
-    public async Task<Response<string>> UpdateAsync(BookLoan bookLoan)
+    public async Task<Response<string>> UpdateAsync(UpdateBookLoanDto bookLoanDto)
     {
-        return await _bookLoanService.UpdateBookLoanAsync(bookLoan);
+        return await _bookLoanService.UpdateBookLoanAsync(bookLoanDto);
     }
 
     [HttpDelete("{bookLoanId}")]

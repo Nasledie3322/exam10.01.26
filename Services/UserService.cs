@@ -1,6 +1,5 @@
 using System.Net;
 using Dapper;
-using WebApi.Data;
 using WebApi.Responses;
 
 namespace WebApi.Services;
@@ -10,16 +9,17 @@ public class UserService(ApplicationDbContext applicationDbContext) : IUserServi
 {
     private readonly ApplicationDbContext _dbContext = applicationDbContext;
 
- public async Task<Response<string>> AddUserAsync(User User)
+ public async Task<Response<string>> AddUserAsync(AddUserDto userDto)
     {
         using var conn = _dbContext.Connection();
-        var query = "insert into users(fullName, email, registeredAt) values(@fullName, @email, @registeredAt)";
-        var res = await conn.ExecuteAsync(query, new
-        {
-            fullName = User.FullName,
-            email = User.Email,
-            registeredAt = User.RegisteredAt
-        });
+       var query = "insert into users(fullName, email, registeredAt) values(@fullName, @email, @registeredAt)";
+var res = await conn.ExecuteAsync(query, new
+{
+    fullName = userDto.FullName,
+    email = userDto.Email,
+    registeredAt = DateTime.Now  
+});
+
 
         return res == 0
             ? new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!")
@@ -70,13 +70,13 @@ public async Task<Response<User?>> GetUserByIdAsync(int UserId)
         }
     }
     
-public async Task<Response<string>> UpdateUserAsync(User User)
+public async Task<Response<string>> UpdateUserAsync(UpdateUserDto userDto)
     {
         try
         {
             using var context = _dbContext.Connection();
             var query = "update users set fullName = @fullName, email = @email where id = @id";
-            var result = await context.ExecuteAsync(query, new{fullName = User.FullName,email = User.Email ,id = User.Id});
+            var result = await context.ExecuteAsync(query, new{fullName = userDto.FullName,email = userDto.Email ,id = userDto.Id});
             return result==0
                 ?new Response<string>(HttpStatusCode.InternalServerError, "User not updated!")
                 :new Response<string>(HttpStatusCode.OK, "User successfully updated!");
