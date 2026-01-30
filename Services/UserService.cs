@@ -1,134 +1,62 @@
 using System.Net;
-using Dapper;
-using WebApi.Data;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using WebApi.Responses;
-using Microsoft.Extensions.Logging;
+using WebApi.Data;
 
 namespace WebApi.Services;
 
-public class UserService(ApplicationDbContext applicationDbContext, ILogger<UserService> logger) : IUserService
+public class UserService(ApplicationDbContext applicationDbContext, IMapper mapper) : IUserService
 {
     private readonly ApplicationDbContext _dbContext = applicationDbContext;
-    private readonly ILogger<UserService> _logger = logger;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<Response<string>> AddUserAsync(AddUserDto userDto)
     {
-        _logger.LogInformation("Starting AddUserAsync");
+        var user = _mapper.Map<User>(userDto);
+        user.RegisteredAt = DateTime.Now;
 
-        using var conn = _dbContext.Connection();
-        var query = "insert into users(fullName, email, registeredAt) values(@fullName, @email, @registeredAt)";
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
 
-        var res = await conn.ExecuteAsync(query, new
-        {
-            fullName = userDto.FullName,
-            email = userDto.Email,
-            registeredAt = DateTime.Now
-        });
-
-        if (res == 0)
-        {
-            _logger.LogWarning("AddUserAsync failed");
-            return new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!");
-        }
-
-        _logger.LogInformation("AddUserAsync succeeded");
         return new Response<string>(HttpStatusCode.OK, "User added successfully!");
     }
 
-    public async Task<Response<string>> DeleteUserAsync(int UserId)
+    public async Task<Response<string>> DeleteUserAsync(int userId)
     {
-        _logger.LogInformation("Starting DeleteUserAsync");
+        var user = await _dbContext.Users.FindAsync(userId);
+        if (user == null)
+            return new Response<string>(HttpStatusCode.NotFound, "User not found!");
 
-        using var context = _dbContext.Connection();
-        var query = "delete from users where id = @id";
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync();
 
-        var result = await context.ExecuteAsync(query, new { id = UserId });
-
-        if (result == 0)
-        {
-            _logger.LogWarning("DeleteUserAsync failed");
-            return new Response<string>(HttpStatusCode.InternalServerError, "User not deleted!");
-        }
-
-        _logger.LogInformation("DeleteUserAsync succeeded");
-        return new Response<string>(HttpStatusCode.OK, "User successfully deleted!");
+        return new Response<string>(HttpStatusCode.OK, "User deleted successfully!");
     }
 
     public async Task<List<User>> GetUserAsync()
     {
-        _logger.LogInformation("Starting GetUserAsync");
-
-        using var context = _dbContext.Connection();
-        var query = "select * from users";
-        var users = await context.QueryAsync<User>(query);
-
-        if (!users.Any())
-        {
-            _logger.LogWarning("GetUserAsync returned empty list");
-        }
-        else
-        {
-            _logger.LogInformation("GetUserAsync successfully");
-        }
-
-        return users.ToList();
+        return await _dbContext.Users.ToListAsync();
     }
 
-    public async Task<Response<User?>> GetUserByIdAsync(int UserId)
+    public async Task<Response<User?>> GetUserByIdAsync(int userId)
     {
-        _logger.LogInformation("Starting GetUserByIdAsync");
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            return new Response<User?>(HttpStatusCode.NotFound, "User not found!");
 
-        try
-        {
-            using var context = _dbContext.Connection();
-            var query = "select * from users where id = @id";
-            var result = await context.QueryFirstOrDefaultAsync<User>(query, new { id = UserId });
-
-            if (result == null)
-            {
-                _logger.LogWarning("GetUserByIdAsync: User not found");
-                return new Response<User?>(HttpStatusCode.InternalServerError, "User not found!");
-            }
-
-            _logger.LogInformation("GetUserByIdAsync successfully");
-            return new Response<User?>(HttpStatusCode.OK, "User found!", result);
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "GetUserByIdAsync error");
-            return new Response<User?>(HttpStatusCode.InternalServerError, "Internal Server Error");
-        }
+        return new Response<User?>(HttpStatusCode.OK, "User found!", user);
     }
 
     public async Task<Response<string>> UpdateUserAsync(UpdateUserDto userDto)
     {
-        _logger.LogInformation("Starting UpdateUserAsync");
+        var user = await _dbContext.Users.FindAsync(userDto.Id);
+        if (user == null)
+            return new Response<string>(HttpStatusCode.NotFound, "User not found!");
 
-        try
-        {
-            using var context = _dbContext.Connection();
-            var query = "update users set fullName = @fullName, email = @email where id = @id";
+        _mapper.Map(userDto, user);
+        await _dbContext.SaveChangesAsync();
 
-            var result = await context.ExecuteAsync(query, new
-            {
-                fullName = userDto.FullName,
-                email = userDto.Email,
-                id = userDto.Id
-            });
-
-            if (result == 0)
-            {
-                _logger.LogWarning("UpdateUserAsync failed");
-                return new Response<string>(HttpStatusCode.InternalServerError, "User not updated!");
-            }
-
-            _logger.LogInformation("UpdateUserAsync successfully");
-            return new Response<string>(HttpStatusCode.OK, "User successfully updated!");
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "UpdateUserAsync error");
-            return new Response<string>(HttpStatusCode.InternalServerError, "Internal Server Error");
-        }
+        return new Response<string>(HttpStatusCode.OK, "User updated successfully!");
     }
 }

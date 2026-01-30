@@ -1,10 +1,15 @@
-using Npgsql;
+using Microsoft.EntityFrameworkCore;
+namespace WebApi.Data; 
 
-namespace WebApi.Data;
-
-public class ApplicationDbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):DbContext(options)
 {
-    private readonly string connString = "Host=localhost;Port=5432;Database=exam120126;Username=postgres;Password=2345";
+    public DbSet<Author> Authors { get; set; }
+    public DbSet<Book> Books { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<BookLoan> BookLoans { get; set; }
 
-    public NpgsqlConnection Connection()=> new NpgsqlConnection(connString);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+    }
 }

@@ -1,131 +1,60 @@
 using System.Net;
-using Dapper;
-using WebApi.Data;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using WebApi.Responses;
-using Microsoft.Extensions.Logging;
+using WebApi.Data;
 
 namespace WebApi.Services;
 
-public class BookService(ApplicationDbContext applicationDbContext, ILogger<BookService> logger) : IBookService
+public class BookService(ApplicationDbContext applicationDbContext, IMapper mapper) : IBookService
 {
     private readonly ApplicationDbContext _dbContext = applicationDbContext;
-    private readonly ILogger<BookService> _logger = logger;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<Response<string>> AddBookAsync(AddBookDto bookDto)
     {
-        _logger.LogInformation("Starting AddBookAsync");
+        var book = _mapper.Map<Book>(bookDto);
+        await _dbContext.Books.AddAsync(book);
+        await _dbContext.SaveChangesAsync();
 
-        using var conn = _dbContext.Connection();
-        var query = "insert into books(title, publishedyear, genre, authorid) values(@title, @publishedYear, @genre, @AuthorId)";
-
-        var res = await conn.ExecuteAsync(query, bookDto);
-
-        if (res == 0)
-        {
-            _logger.LogWarning("AddBookAsync failed");
-            return new Response<string>(HttpStatusCode.InternalServerError, "Something went wrong!");
-        }
-
-        _logger.LogInformation("AddBookAsync succeeded");
         return new Response<string>(HttpStatusCode.OK, "Book added successfully!");
     }
 
     public async Task<Response<string>> DeleteBookAsync(int bookId)
     {
-        _logger.LogInformation("Starting DeleteBookAsync");
+        var book = await _dbContext.Books.FindAsync(bookId);
+        if (book == null)
+            return new Response<string>(HttpStatusCode.NotFound, "Book not found!");
 
-        using var context = _dbContext.Connection();
-        var query = "delete from books where id = @id";
+        _dbContext.Books.Remove(book);
+        await _dbContext.SaveChangesAsync();
 
-        var result = await context.ExecuteAsync(query, new { id = bookId });
-
-        if (result == 0)
-        {
-            _logger.LogWarning("DeleteBookAsync failed");
-            return new Response<string>(HttpStatusCode.InternalServerError, "Book not deleted!");
-        }
-
-        _logger.LogInformation("DeleteBookAsync succeeded");
-        return new Response<string>(HttpStatusCode.OK, "Book successfully deleted!");
+        return new Response<string>(HttpStatusCode.OK, "Book deleted successfully!");
     }
 
     public async Task<List<Book>> GetBookAsync()
     {
-        _logger.LogInformation("Starting GetBookAsync");
-
-        using var context = _dbContext.Connection();
-        var query = "select * from books";
-        var books = await context.QueryAsync<Book>(query);
-
-        if (!books.Any())
-        {
-            _logger.LogWarning("GetBookAsync returned empty list");
-        }
-        else
-        {
-            _logger.LogInformation("GetBookAsync successfully");
-        }
-
-        return books.ToList();
+        return await _dbContext.Books.ToListAsync();
     }
 
     public async Task<Response<Book?>> GetBookByIdAsync(int bookId)
     {
-        _logger.LogInformation("Starting GetBookByIdAsync");
+        var book = await _dbContext.Books.FirstOrDefaultAsync(b => b.Id == bookId);
+        if (book == null)
+            return new Response<Book?>(HttpStatusCode.NotFound, "Book not found!");
 
-        try
-        {
-            using var context = _dbContext.Connection();
-            var query = "select * from books where id = @id";
-            var result = await context.QueryFirstOrDefaultAsync<Book>(query, new { id = bookId });
-
-            if (result == null)
-            {
-                _logger.LogWarning("GetBookByIdAsync: Book not found");
-                return new Response<Book?>(HttpStatusCode.InternalServerError, "Book not found!");
-            }
-
-            _logger.LogInformation("GetBookByIdAsync succeeded");
-            return new Response<Book?>(HttpStatusCode.OK, "Book found!", result);
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "GetBookByIdAsync error");
-            return new Response<Book?>(HttpStatusCode.InternalServerError, "Internal Server Error");
-        }
+        return new Response<Book?>(HttpStatusCode.OK, "Book found!", book);
     }
 
     public async Task<Response<string>> UpdateBookAsync(UpdateBookDto bookDto)
     {
-        _logger.LogInformation("Starting UpdateBookAsync");
+        var book = await _dbContext.Books.FindAsync(bookDto.Id);
+        if (book == null)
+            return new Response<string>(HttpStatusCode.NotFound, "Book not found!");
 
-        try
-        {
-            using var context = _dbContext.Connection();
-            var query = "update books set title = @title, publishedYear = @publishedYear, genre = @genre, authorId = @authorId where id = @id";
+        _mapper.Map(bookDto, book);
+        await _dbContext.SaveChangesAsync();
 
-            var result = await context.ExecuteAsync(query, new
-            {
-                title = bookDto.Title,
-                id = bookDto.Id,
-                publishedYear = bookDto.PublishedYear,
-                genre = bookDto.Genre,
-                authorId = bookDto.AuthorId
-            });
-
-            if (result == 0)
-            {
-                _logger.LogWarning("UpdateBookAsync failed");
-                return new Response<string>(HttpStatusCode.InternalServerError, "Book not updated!");
-            }
-
-            _logger.LogInformation("UpdateBookAsync successfully");
-            return new Response<string>(HttpStatusCode.OK, "Book successfully updated!");
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "UpdateBookAsync error");
-            return new Response<string>(HttpStatusCode.InternalServerError, "Internal Server Error");
-        }
+        return new Response<string>(HttpStatusCode.OK, "Book updated successfully!");
     }
 }

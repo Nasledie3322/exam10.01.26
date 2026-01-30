@@ -1,6 +1,6 @@
 public class AddAuthorDto
 {
-    public string Fullname{get;set;}
+    public string? FullName{get;set;}
 public DateTime BirthDate{get;set;}
-public string Country{get;set;}
+public required string Country{get;set;}
 }
